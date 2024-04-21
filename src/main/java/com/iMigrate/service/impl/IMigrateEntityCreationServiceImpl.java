@@ -62,27 +62,6 @@ public class IMigrateEntityCreationServiceImpl implements IMigrateEntityCreation
 		createJPAEntity(tables, entityPkgPrefix + tables.getTableName(), tables.getColumns());
 		DynamicEntity entity = (DynamicEntity) Class.forName(entityPkgPrefix + tables.getTableName()).getConstructor()
 				.newInstance();
-
-		List<Map<String, Object>> object = iMigrateSourceTargetDatabaseRepository.fetchSourceDbTableData(tables.getTableName());
-		Map<String, ForeignKeys> listPks = null;
-		if(tables.getForeignKeys()!=null && tables.getForeignKeys().size()>0) {
-			listPks = tables.getForeignKeys().stream()
-					.collect(Collectors.toMap(obj->obj.getFkColumnName(), Function.identity()));
-					
-		}
-		for (Map<String, Object> row : object) {
-			for (Columns col : tables.getColumns()) {
-				if(listPks!=null && listPks.size()>0 && listPks.containsKey(col.getColumnName())) {
-					ForeignKeys fkDet = listPks.get(col.getColumnName());
-					DynamicEntity fkEntity = (DynamicEntity) Class.forName(entityPkgPrefix + fkDet.getPkTableName()).getConstructor()
-							.newInstance();
-					entity.set(fkDet.getPkTableName(), fkEntity);
-				}else {
-					entity.set(col.getColumnName(),row.get(col.getColumnName()));	
-				}
-				
-			}
-		}
 		return entity;
 	}
 

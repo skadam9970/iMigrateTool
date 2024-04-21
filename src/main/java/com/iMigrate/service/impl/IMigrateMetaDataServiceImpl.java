@@ -12,6 +12,9 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -124,8 +127,34 @@ public class IMigrateMetaDataServiceImpl implements IMigrateMetaDataService {
 
 			IMigrateEntityManagerConfig.createEntityManger(listEntities);
 
-			IMigrateEntityManagerConfig.persistEntities(listEntities);
-			
+			for (Map.Entry<String, Tables> entry : tablesMap.entrySet()) {
+				String key = entry.getKey();
+				Tables tables = entry.getValue();
+				List<Map<String, Object>> object = iMigrateSourceTargetDatabaseRepository.fetchSourceDbTableData(tables.getTableName());
+				Map<String, ForeignKeys> listPks = null;
+				if (tables.getForeignKeys() != null && tables.getForeignKeys().size() > 0) {
+					listPks = tables.getForeignKeys().stream()
+							.collect(Collectors.toMap(obj -> obj.getFkColumnName(), Function.identity()));
+
+				}
+				
+				List<DynamicEntity> persistEntities = new LinkedList<>();
+				for (Map<String, Object> row : object) {
+					DynamicEntity entity = (DynamicEntity) Class.forName(entityPkgPrefix + tables.getTableName()).getConstructor()
+							.newInstance();
+					persistEntities.add(entity);
+					for (Columns col : tables.getColumns()) {
+						if (listPks != null && listPks.size() > 0 && listPks.containsKey(col.getColumnName())) {
+							ForeignKeys fkDet = listPks.get(col.getColumnName());
+							DynamicEntity fkEntity = (DynamicEntity) Class
+									.forName(entityPkgPrefix + fkDet.getPkTableName()).getConstructor().newInstance();
+							entity.set(fkDet.getPkTableName(), fkEntity);
+						} else {
+							entity.set(col.getColumnName(), row.get(col.getColumnName()));
+						}					}
+				}
+				IMigrateEntityManagerConfig.persistEntities(persistEntities);
+			}
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
