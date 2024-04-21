@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.hibernate.annotations.GeneratorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,7 @@ import com.iMigrate.service.IMigrateEntityCreationService;
 import com.iMigrate.util.IMigrateUtils;
 
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GenerationType;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.dynamic.DynamicType.Builder;
@@ -116,19 +118,28 @@ public class IMigrateEntityCreationServiceImpl implements IMigrateEntityCreation
 			} else {
 				builder = builder.defineField(e.getKey(), e.getValue())
 						.annotateField(AnnotationDescription.Builder.ofType(jakarta.persistence.Column.class)
-																
+								.define("nullable", 
+										(mapColumns.containsKey(e.getKey()) && mapColumns.get(e.getKey()).getIsNullable().equals("YES"))? true: false)																
 								.build());
 			}
 		}
-//		.define("nullable", 
-//				(mapColumns.containsKey(e.getKey()) && mapColumns.get(e.getKey()).getIsNullable().equals("YES"))? true: false)
+//		
 		if (tables.getPrimaryKeys().size() > 0) {
 			PrimaryKeys pks = tables.getPrimaryKeys().get(0);
+			Columns pkColumn = mapColumns.get(pks.getPrimaryKeyColName());
+			AnnotationDescription entityStategy = null;
+			if(pkColumn.getIsAutoIncrement().equals("YES")) {
+				entityStategy = AnnotationDescription.Builder.ofType(jakarta.persistence.GeneratedValue.class)
+				.define("strategy",  GenerationType.IDENTITY)
+				.build();
+			} else {
+				entityStategy = AnnotationDescription.Builder.ofType(jakarta.persistence.GeneratedValue.class).build();
+			}
 			Class clazz = fields.get(pks.getPrimaryKeyColName());
 			builder = builder.defineField(pks.getPrimaryKeyColName(), clazz).annotateField(
 					AnnotationDescription.Builder.ofType(jakarta.persistence.Id.class).build(),
 					AnnotationDescription.Builder.ofType(jakarta.persistence.Column.class).build(),
-					AnnotationDescription.Builder.ofType(jakarta.persistence.GeneratedValue.class).build());
+					entityStategy);
 		}
 		// Load the entity
 		Unloaded<?> generatedClass = builder.name(className).make();
