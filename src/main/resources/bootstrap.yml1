@@ -1,0 +1,22 @@
+
+logging:
+  file:
+    max-size: 100MB
+#    name: /var/opt/appworkr/logs/${spring.application.name}.log
+    max-history: 30
+
+---
+#Dev, Qa, Perf, Prod bootstrap properties
+spring.profiles: dev
+spring:
+  application:
+    name: iMigrate
+logging:
+  file:
+    max-size: 100MB
+    name: /logs/${spring.application.name}.log
+    max-history: 30
+
+---
+# Dev Bootstrap props
+spring.profiles: dev

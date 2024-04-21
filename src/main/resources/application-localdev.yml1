@@ -1,0 +1,85 @@
+server:
+  port: 8000
+  servlet:
+    context-path: /api/iMigrate
+
+logging:
+  level:
+    ROOT: INFO
+    com.staples.iMigrate: INFO
+    com.zaxxer.hikari: INFO
+    org.springframework: INFO
+  file:
+    max-size: 1GB
+    
+management:
+  health:
+    db:
+      enabled: false
+    jms:
+      enabled: false
+
+spring:
+  application:
+    name: iMigrate
+    instance_id: dev
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:jtds:sqlserver://wctxwvdper259;Server=localhost;Database=master;Trusted_Connection=True;
+    username: sa
+    password: RPSsql12345
+    driver-class-name: net.sourceforge.jtds.jdbc.Driver
+    hikari:
+      jdbc-url: jdbc:jtds:sqlserver://wctxwvdper259;Server=localhost;Database=master;Trusted_Connection=True;
+      username: sa
+      password: RPSsql12345
+      driver-class-name: net.sourceforge.jtds.jdbc.Driver
+      connection-timeout: 30000
+      idle-timeout: 300000
+      max-lifetime: 1000
+      auto-commit: true
+      connection-init-sql: select 1
+      connection-test-query: select 1
+      pool-name: DefaultDataSourcePool
+  jpa:
+    properties:
+      hibernate:
+        dialect: net.sourceforge.jtds.jdbc.Driver
+  mssql-datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:jtds:sqlserver://wctxwvdper259;Server=localhost;Database=master;Trusted_Connection=True;
+    username: sa
+    password: RPSsql12345
+    driver-class-name: net.sourceforge.jtds.jdbc.Driver
+    hikari:
+      jdbc-url: jdbc:jtds:sqlserver://wctxwvdper259;Server=localhost;Database=master;Trusted_Connection=True;
+      username: sa
+      password: RPSsql12345
+      driver-class-name: net.sourceforge.jtds.jdbc.Driver
+      maximum-pool-size: 25
+      max-lifetime: 1000
+      auto-commit: true
+      connection-init-sql: SELECT 1
+      connection-test-query: SELECT 1
+      pool-name: mssqlDataSourcePool
+
+eureka:
+  instance:
+    metadataMap:
+      instanceId: ${spring.application.name}:${spring.application.instance_id:${random.int}}
+      management:
+        context-path: ${server.servlet.context-path}/actuator
+        port: ${server.port}
+    statusPageUrlPath: actuator/info
+    healthCheckUrlPath: actuator/health
+  client:
+    enabled: false
+    registerWithEureka: true
+    healthcheck:
+      enabled: false
+    fetchRegistry: false
+
+web.cors.allowedOrigins:
+  - https://localhot:8000
+  - https://editor.swagger.io
+
