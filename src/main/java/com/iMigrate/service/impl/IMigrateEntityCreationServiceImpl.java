@@ -2,6 +2,8 @@ package com.iMigrate.service.impl;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -157,36 +159,48 @@ public class IMigrateEntityCreationServiceImpl implements IMigrateEntityCreation
 	private Builder<DynamicEntity> getTableMetadataWithIndexed(Tables tables, String indexes) {
 		//		AnnotationDescription idxAn = AnnotationDescription.Builder.ofType(jakarta.persistence.Index.class)
 		//		.define("columnList", indexes).build();
+		jakarta.persistence.Index[] indexArr=new jakarta.persistence.Index[tables.getIndexes().size()];
+		List<jakarta.persistence.Index> listArr = new ArrayList<>();
+		if(tables.getIndexes().size()>0) { 
+			for (int i = 0; i < tables.getIndexes().size(); i++) {
+				Indexes index =tables.getIndexes().get(i);
+				if(index.getIndexName() == null) {
+					continue;
+				}
+				
+				jakarta.persistence.Index obj =new jakarta.persistence.Index() {
+					@Override
+					public String name() {
+						return index.getIndexName();
+					}
+
+					@Override
+					public Class<? extends Annotation> annotationType() {
+						// TODO Auto-generated method stub
+						return jakarta.persistence.Index.class;
+					}
+
+					@Override
+					public String columnList() {
+						// TODO Auto-generated method stub
+						return index.getColumnName();
+					}
+
+					@Override
+					public boolean unique() {
+						// TODO Auto-generated method stub
+						return false;
+					}
+				};
+				listArr.add(obj);
+			}	
+		}
+		
 		var builder = new ByteBuddy().subclass(DynamicEntity.class).annotateType(
 				AnnotationDescription.Builder.ofType(jakarta.persistence.Entity.class).build(),
 				AnnotationDescription.Builder.ofType(jakarta.persistence.Table.class)
 				.define("name", tables.getTableName())
-				.defineAnnotationArray("indexes", jakarta.persistence.Index.class, new jakarta.persistence.Index[] {
-						new jakarta.persistence.Index() {
-							@Override
-							public String name() {
-								return tables.getIndexes().get(1).getIndexName();
-							}
-
-							@Override
-							public Class<? extends Annotation> annotationType() {
-								// TODO Auto-generated method stub
-								return jakarta.persistence.Index.class;
-							}
-
-							@Override
-							public String columnList() {
-								// TODO Auto-generated method stub
-								return indexes;
-							}
-
-							@Override
-							public boolean unique() {
-								// TODO Auto-generated method stub
-								return false;
-							}
-						}
-				})
+				.defineAnnotationArray("indexes", jakarta.persistence.Index.class, listArr.toArray(new jakarta.persistence.Index[listArr.size()]))
 				.build());
 		return builder;
 

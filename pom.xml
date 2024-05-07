@@ -20,6 +20,13 @@
 		<jakarta-servlet.version>5.0.0</jakarta-servlet.version>
 	</properties>
 	<dependencies>
+		<!-- https://mvnrepository.com/artifact/com.oracle.tools/oracle-tools-all -->
+<dependency>
+    <groupId>com.oracle.tools</groupId>
+    <artifactId>oracle-tools-all</artifactId>
+    <version>1.2.2</version>
+</dependency>
+
 	<dependency>
 			<groupId>com.microsoft.sqlserver</groupId>
 			<artifactId>mssql-jdbc</artifactId>

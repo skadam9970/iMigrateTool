@@ -305,6 +305,9 @@ public class IMigrateMetaDataServiceImpl implements IMigrateMetaDataService {
 			}
 		}
 		DynamicEntity entity = IMigrateEntityCreationService.getJPAEntity(tables);
+		/*Class clazz = entity.getClass();
+		String path = clazz.getPackage().getName().replaceAll("\\.","/");
+		System.out.println(path);*/
 		listEntities.add(entity);
 		doneTablesList.add(tables.getTableName());
 	}
